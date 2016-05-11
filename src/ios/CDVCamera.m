@@ -29,6 +29,10 @@
 #import <ImageIO/CGImageDestination.h>
 #import <MobileCoreServices/UTCoreTypes.h>
 #import <objc/message.h>
+#import <AssetsLibrary/ALAsset.h>
+#import <AssetsLibrary/ALAssetRepresentation.h>
+#import <ImageIO/CGImageSource.h>
+#import <ImageIO/CGImageProperties.h>
 
 #ifndef __CORDOVA_4_0_0
     #import <Cordova/NSData+Base64.h>
@@ -37,6 +41,7 @@
 #define CDV_PHOTO_PREFIX @"cdv_photo_"
 
 static NSSet* org_apache_cordova_validArrowDirections;
+CFDictionaryRef imagePropertiesDictionary;
 
 static NSString* toBase64(NSData* data) {
     SEL s1 = NSSelectorFromString(@"cdv_base64EncodedString");
@@ -487,10 +492,11 @@ static NSString* toBase64(NSData* data) {
             image = [self retrieveImage:info options:options];
             NSData* data = [self processImage:image info:info options:options];
             if (data)  {
-                result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:toBase64(data)];
+            	NSData *dataWithMeta = [self addMetadataToImageData:data];
+                result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:toBase64(dataWithMeta)];
             }
         }
-            break;
+           break;
         default:
             break;
     };
@@ -503,6 +509,25 @@ static NSString* toBase64(NSData* data) {
     completion(result);
 }
 
+- (NSData*) addMetadataToImageData:(NSData*)imageData
+{
+	CGImageSourceRef source = CGImageSourceCreateWithData((__bridge CFDataRef)imageData, NULL);
+	CFStringRef UTI = CGImageSourceGetType(source);
+	NSMutableData *dataWithMeta = [NSMutableData data];
+	CGImageDestinationRef destination = CGImageDestinationCreateWithData((__bridge CFMutableDataRef)dataWithMeta,UTI,1,NULL);
+	CGImageDestinationAddImageFromSource(destination, source, 0, imagePropertiesDictionary);
+ 	 	    
+	BOOL success = NO;
+	success = CGImageDestinationFinalize(destination);
+ 	 	    
+ 	if (!success)
+    {
+   		return imageData;
+    }
+ 	 	    
+ 	return dataWithMeta;
+ }
+
 - (CDVPluginResult*)resultForVideo:(NSDictionary*)info
 {
     NSString* moviePath = [[info objectForKey:UIImagePickerControllerMediaURL] absoluteString];
@@ -511,6 +536,7 @@ static NSString* toBase64(NSData* data) {
 
 - (void)imagePickerController:(UIImagePickerController*)picker didFinishPickingMediaWithInfo:(NSDictionary*)info
 {
+	[self saveImageMetaDataFromInfo:info];  //save metadata dictionary to be sent later using data uri
     __weak CDVCameraPicker* cameraPicker = (CDVCameraPicker*)picker;
     __weak CDVCamera* weakSelf = self;
     
@@ -541,6 +567,43 @@ static NSString* toBase64(NSData* data) {
     } else {
         [[cameraPicker presentingViewController] dismissViewControllerAnimated:YES completion:invoke];
     }
+}
+
+- (void)saveImageMetaDataFromInfo:(NSDictionary*)info{
+ 	ALAssetsLibrary *library = [[ALAssetsLibrary alloc] init];
+ 	[library assetForURL:[info objectForKey:UIImagePickerControllerReferenceURL]
+ 		resultBlock:^(ALAsset *asset) {
+ 	 	                 
+ 	 		ALAssetRepresentation *image_representation = [asset defaultRepresentation];
+ 	 	                 
+ 	 	   	// create a buffer to hold image data
+ 	 	 	uint8_t *buffer = (Byte*)malloc(image_representation.size);
+ 	 	 	NSUInteger length = [image_representation getBytes:buffer fromOffset: 0.0  length:image_representation.size error:nil];
+ 	 	                 
+ 	 		if (length != 0)  {
+ 	 	                     
+ 	 	 		// buffer -> NSData object; free buffer afterwards
+ 	 			NSData *adata = [[NSData alloc] initWithBytesNoCopy:buffer length:image_representation.size freeWhenDone:YES];
+ 	 	                     
+ 	 			// identify image type (jpeg, png, RAW file, ...) using UTI hint
+ 				NSDictionary* sourceOptionsDict = [NSDictionary dictionaryWithObjectsAndKeys:(id)[image_representation UTI] ,kCGImageSourceTypeIdentifierHint,nil];
+ 	 	                     
+ 	 			// create CGImageSource with NSData
+ 	 			CGImageSourceRef sourceRef = CGImageSourceCreateWithData((__bridge CFDataRef) adata,  (__bridge CFDictionaryRef) sourceOptionsDict);
+ 	 	                     
+ 				// get imagePropertiesDictionary to be accessed later
+ 	 			imagePropertiesDictionary = CGImageSourceCopyPropertiesAtIndex(sourceRef,0, NULL);
+ 	 	                     
+ 	 	 		CFRelease(sourceRef);
+ 	 		}
+ 	 		else {
+ 	 			NSLog(@"image_representation buffer length == 0");
+ 	 	 	}
+ 		}
+ 	 	failureBlock:^(NSError *error) {
+ 	 		NSLog(@"couldn't get asset: %@", error);
+		}
+	];
 }
 
 // older api calls newer didFinishPickingMediaWithInfo
