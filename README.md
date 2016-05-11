@@ -23,10 +23,9 @@ description: Take pictures with the device camera.
 
 [![Build Status](https://travis-ci.org/apache/cordova-plugin-camera.svg?branch=master)](https://travis-ci.org/apache/cordova-plugin-camera)
 
-# cordova-plugin-camera
+# cordova-plugin-camera-exifdata
 
-This plugin defines a global `navigator.camera` object, which provides an API for taking pictures and for choosing images from
-the system's image library.
+This plugin defines a global `navigator.camera` object, which provides an API for taking pictures and for choosing images from the system's image library. The only thing added for now is support of returning base64encoded string with Exif meta data for iOS only. This works with destination type DATA_URL only.
 
 Although the object is attached to the global scoped `navigator`, it is not available until after the `deviceready` event.
 
