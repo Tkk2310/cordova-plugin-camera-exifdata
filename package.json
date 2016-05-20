@@ -1,9 +1,9 @@
 {
-  "name": "cordova-plugin-camera",
-  "version": "2.2.1-dev",
-  "description": "Cordova Camera Plugin",
+  "name": "cordova-plugin-camera-withexif",
+  "version": "1.0.2",
+  "description": "Cordova Camera Plugin With Exif Meta Data",
   "cordova": {
-    "id": "cordova-plugin-camera",
+    "id": "cordova-plugin-camera-withexif",
     "platforms": [
       "firefoxos",
       "android",
@@ -20,7 +20,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/apache/cordova-plugin-camera"
+    "url": "https://github.com/vigyanhoon/cordova-plugin-camera-exifdata"
   },
   "keywords": [
     "cordova",
