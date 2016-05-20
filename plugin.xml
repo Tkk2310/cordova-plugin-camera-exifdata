@@ -21,13 +21,13 @@
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:rim="http://www.blackberry.com/ns/widgets"
-    id="cordova-plugin-camera"
-    version="2.2.1-dev">
+    id="cordova-plugin-camera-withexif"
+    version="1.0.2">
     <name>Camera</name>
-    <description>Cordova Camera Plugin</description>
+    <description>Cordova Camera Plugin With Exif Meta Data</description>
     <license>Apache 2.0</license>
-    <keywords>cordova,camera</keywords>
-    <repo>https://git-wip-us.apache.org/repos/asf/cordova-plugin-camera.git</repo>
+    <keywords>cordova,camera,exif</keywords>
+    <repo>https://github.com/vigyanhoon/cordova-plugin-camera-exifdata</repo>
     <issue>https://issues.apache.org/jira/browse/CB/component/12320645</issue>
 
     <dependency id="cordova-plugin-compat" version="^1.0.0" />
