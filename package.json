@@ -1,6 +1,6 @@
 {
   "name": "cordova-plugin-camera-withexif",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Cordova Camera Plugin With Exif Meta Data",
   "cordova": {
     "id": "cordova-plugin-camera-withexif",
